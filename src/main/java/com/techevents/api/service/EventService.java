@@ -67,7 +67,7 @@ public class EventService {
                 event.getTitle(),
                 event.getDescription(),
                 event.getDate(),
-                "",
+                event.getAddress() != null ? event.getAddress().getCity() : "",
                 event.getRemote(),
                 event.getEventUrl(),
                 event.getImgUrl()
@@ -82,14 +82,19 @@ public class EventService {
             Date startDate,
             Date endDate
     ) {
+        title = (title != null) ? title : "";
+        city = (city != null) ? city : "";
+        startDate = (startDate != null) ? startDate : new Date(0);
+        endDate = (endDate != null) ? endDate : new Date();
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<Event> eventsPage = this.eventRepository.findFilteredEvents(new Date(), title, city, startDate, endDate, pageable);
+        Page<Event> eventsPage = this.eventRepository.findFilteredEvents(title, city, startDate, endDate, pageable);
         return eventsPage.map(event -> new EventResponseDTO(
                 event.getId(),
                 event.getTitle(),
                 event.getDescription(),
                 event.getDate(),
-                "",
+                event.getAddress() != null ? event.getAddress().getCity() : "",
                 event.getRemote(),
                 event.getEventUrl(),
                 event.getImgUrl()
