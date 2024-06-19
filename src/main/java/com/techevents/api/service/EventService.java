@@ -29,6 +29,9 @@ public class EventService {
     @Autowired
     private EventRepository eventRepository;
 
+    @Autowired
+    private AddressService addressService;
+
     @Value("${aws.bucket.name}")
     private String bucketName;
 
@@ -49,12 +52,38 @@ public class EventService {
 
         eventRepository.save(newEvent);
 
+        if (!data.remote()) {
+            this.addressService.createAddress(data, newEvent);
+        }
+
         return newEvent;
     }
 
     public List<EventResponseDTO> getUpcomingEvents(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Event> eventsPage = this.eventRepository.findUpcomingEvents(new Date(), pageable);
+        return eventsPage.map(event -> new EventResponseDTO(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getDate(),
+                "",
+                event.getRemote(),
+                event.getEventUrl(),
+                event.getImgUrl()
+        )).stream().toList();
+    }
+
+    public List<EventResponseDTO> getFilteredEvents(
+            int page,
+            int size,
+            String title,
+            String city,
+            Date startDate,
+            Date endDate
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> eventsPage = this.eventRepository.findFilteredEvents(new Date(), title, city, startDate, endDate, pageable);
         return eventsPage.map(event -> new EventResponseDTO(
                 event.getId(),
                 event.getTitle(),
